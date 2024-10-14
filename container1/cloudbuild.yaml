@@ -1,0 +1,47 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    [
+      'build',
+      '-t',
+      'us-central1-docker.pkg.dev/amazing-jetty-429015-g8/kubernetes/container1:6',
+      '-f',
+      'Dockerfile', 
+      '.',
+    ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/amazing-jetty-429015-g8/kubernetes/container1:6']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      gcloud container clusters get-credentials cluster-2 --zone us-central1-c --project amazing-jetty-429015-g8
+      
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      PROJECT=$$(gcloud config get-value core/project)          
+      gke-gcloud-auth-plugin --version
+      export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+      gcloud container clusters get-credentials cluster-2 --zone us-central1-c --project amazing-jetty-429015-g8
+      kubectl apply -f container1-deployment.yaml
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      PROJECT=$$(gcloud config get-value core/project)          
+      gke-gcloud-auth-plugin --version
+      export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+      gcloud container clusters get-credentials cluster-2 --zone us-central1-c --project amazing-jetty-429015-g8
+      kubectl apply -f persistent-volume.yaml
+
+images:
+- 'us-central1-docker.pkg.dev/amazing-jetty-429015-g8/kubernetes/container1:6'

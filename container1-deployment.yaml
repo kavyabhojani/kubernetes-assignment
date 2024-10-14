@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: container1-deployment
+  labels: 
+    app: container1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: container1
+  template:
+    metadata:
+      labels:
+        app: container1
+    spec:
+      containers:
+      - name: container1
+        image: kavyabhojani/container1:6
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - mountPath: /kavya_PV_dir
+          name: storage 
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: kavya-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: container1-service
+spec:
+  selector:
+    app: container1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: LoadBalancer
